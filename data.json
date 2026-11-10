@@ -1,0 +1,118 @@
+{
+  "version": "1.0",
+  "note": "Valeurs fictives inspirées des circuits embarqués. Toute correction se fait ici, jamais dans le code.",
+  "energie_initiale": 100,
+  "decharge_secondes": 30,
+  "seuil_absence_tension": 0.5,
+  "intervalle_instable_ms": 300,
+  "points_de_test": [
+    { "id": "TP1", "nom": "Sortie de la batterie", "nominal": 28, "tolerance": 1, "amont_disjoncteur": true },
+    { "id": "TP2", "nom": "Sortie du convertisseur", "nominal": 12, "tolerance": 0.5, "amont_disjoncteur": false },
+    { "id": "TP3", "nom": "Bornier du contrôleur de propulsion", "nominal": 12, "tolerance": 0.5, "amont_disjoncteur": false }
+  ],
+  "pannes": [
+    {
+      "id": 1,
+      "nom": "Convertisseur hors service",
+      "mesures": {
+        "TP1": { "min": 28, "max": 28, "instable": false },
+        "TP2": { "min": 0, "max": 0, "instable": false },
+        "TP3": { "min": 0, "max": 0, "instable": false }
+      },
+      "composant_en_panne": "convertisseur",
+      "reparation_correcte": "remplacer_convertisseur"
+    },
+    {
+      "id": 2,
+      "nom": "Câble coupé entre convertisseur et contrôleur",
+      "mesures": {
+        "TP1": { "min": 28, "max": 28, "instable": false },
+        "TP2": { "min": 12, "max": 12, "instable": false },
+        "TP3": { "min": 0, "max": 0, "instable": false }
+      },
+      "composant_en_panne": "cable",
+      "reparation_correcte": "remplacer_cable"
+    },
+    {
+      "id": 3,
+      "nom": "Connecteur encrassé par la poussière martienne",
+      "mesures": {
+        "TP1": { "min": 28, "max": 28, "instable": false },
+        "TP2": { "min": 12, "max": 12, "instable": false },
+        "TP3": { "min": 4, "max": 9, "instable": true }
+      },
+      "composant_en_panne": "connecteur",
+      "reparation_correcte": "nettoyer_connecteur"
+    }
+  ],
+  "reparations": [
+    { "id": "remplacer_convertisseur", "libelle": "Remplacer le convertisseur", "composant": "convertisseur", "consomme": "convertisseur" },
+    { "id": "remplacer_cable", "libelle": "Remplacer le câble de liaison", "composant": "cable", "consomme": "cable" },
+    { "id": "nettoyer_connecteur", "libelle": "Nettoyer et resserrer le connecteur", "composant": "connecteur", "consomme": null }
+  ],
+  "stock_initial": {
+    "convertisseur": 1,
+    "cable": 1,
+    "fusible_multimetre": 2
+  },
+  "erreurs_critiques": [
+    {
+      "id": "intervention_sous_tension",
+      "condition": "Réparer un composant alors que l'état n'est pas CONSIGNE",
+      "energie": -20,
+      "effet": "arc",
+      "message_ines": "Arc électrique ! Tu as touché le circuit sans vérifier qu'il était hors tension. Ouvre le disjoncteur, attends, puis vérifie au multimètre."
+    },
+    {
+      "id": "ohmmetre_sous_tension",
+      "condition": "Mesurer en ohmmètre un point dont la tension dépasse le seuil d'absence de tension",
+      "energie": 0,
+      "effet": "fusible",
+      "message_ines": "Le fusible du multimètre a grillé : on ne mesure jamais en ohmmètre un circuit sous tension. Remplace le fusible dans la trousse."
+    },
+    {
+      "id": "piece_gaspillee",
+      "condition": "Remplacer une pièce qui n'est pas en panne",
+      "energie": 0,
+      "effet": "piece",
+      "message_ines": "Cette pièce n'était pas en panne : tu as utilisé ta seule pièce de rechange, et la panne est toujours là. Reprends tes trois mesures."
+    }
+  ],
+  "messages_ines": {
+    "accueil": "Hugo, ici Inès. Le voyant PROPULSION clignote. Trouve la cause avant de toucher à quoi que ce soit.",
+    "consigne_ok": "Tension nulle confirmée. Tu peux intervenir en sécurité.",
+    "reparation_ok": "Réparation faite. Referme le disjoncteur et vérifie tes trois mesures.",
+    "validation_ok": "Les trois valeurs sont dans les tolérances. Le voyant est vert !",
+    "demarrage_refuse": "Séquence refusée : la validation n'est pas faite. Mesure les trois points après la remise sous tension.",
+    "energie_epuisee": "La batterie est épuisée. La mission s'arrête ici : regardons ensemble ce qui s'est passé.",
+    "fin": "Voyant vert, moteurs prêts. Bravo, Hugo, tu rentres à la maison."
+  },
+  "aides": {
+    "SOUS_TENSION": [
+      "Commence par mesurer. Quel réglage du multimètre faut-il pour une tension ?",
+      "Règle le multimètre sur V continue et mesure TP1, TP2, puis TP3.",
+      "Compare tes trois mesures à la table du manuel : la première valeur anormale en partant de la batterie indique où chercher."
+    ],
+    "DECHARGE": [
+      "Le disjoncteur est ouvert, mais tout n'est peut-être pas encore à 0 V.",
+      "Les condensateurs se déchargent : mesure TP2 et regarde la valeur descendre.",
+      "Attends que TP2 soit sous 0,5 V : tant que ce n'est pas mesuré, tu n'es pas en sécurité."
+    ],
+    "CONSIGNE": [
+      "Le circuit est sûr. Quelle réparation correspond à tes mesures ?",
+      "Relis tes mesures : TP2 était-il correct ? Et TP3, stable ou instable ?",
+      "TP2 correct et TP3 instable : c'est le connecteur. TP2 correct et TP3 à 0 V : c'est le câble. TP2 à 0 V : c'est le convertisseur."
+    ],
+    "REMISE_SOUS_TENSION": [
+      "La réparation est-elle vraiment efficace ? Il faut le vérifier.",
+      "Mesure à nouveau TP1, TP2 et TP3 en V continue.",
+      "Si les trois valeurs sont dans les tolérances, le voyant passe au vert : tu peux lancer la séquence de démarrage."
+    ]
+  },
+  "criteres_reussite": [
+    { "id": "securite", "libelle": "Aucune intervention sans vérification d'absence de tension" },
+    { "id": "diagnostic", "libelle": "Les 3 points mesurés sous tension avant la première réparation" },
+    { "id": "ressources", "libelle": "Aucune pièce de rechange gaspillée" },
+    { "id": "validation", "libelle": "Les 3 points mesurés et dans les tolérances après remise sous tension" }
+  ]
+}
